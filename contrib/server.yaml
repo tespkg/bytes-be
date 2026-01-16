@@ -1,0 +1,57 @@
+version: 0.0.1
+
+rest:
+  host: 0.0.0.0
+  port: 9320
+
+service_basic_config:
+  enable_swagger_docs: true
+  domain_addr: http://localhost:9320
+  redirect_domain: ""
+  single_login: false
+  login_token_expire_duration: 2419200
+  email_sender: ""
+  bytes_env: ""
+
+postgres:
+  dsn: postgres://postgres:postgres@localhost:56565/food?sslmode=disable
+  max_idle_conns: 100
+  max_open_conns: 100
+  log_level: info
+
+cors_hosts: '*'
+
+sessms_addr: ""
+
+carbon:
+  timezone: Asia/Muscat
+  week_starts_at: 0
+
+redis:
+  url: redis://127.0.0.1:6379
+
+nominatim_addr: nominatim.openstreetmap.org
+
+smart_pay: ""
+
+click_pay: ""
+
+goroutine_pool_max: 20
+
+meerastorage:
+  end_point: http://meerastorage-standalone.dev-meeraspace-meerastorage-standalone:9090
+  bucket: "food"
+
+enable_ingredient_analysis: false
+
+google_analytics:
+  cred_file: /usr/local/config/config.json
+  prop_id: 299471548
+
+bytes_match:
+  address: ""
+  expire_duration: 60
+
+jwt_signed_secret: Tes9tinas2kmskajirn-standalone
+
+

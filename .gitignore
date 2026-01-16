@@ -29,4 +29,11 @@ go.work.sum
 
 # Editor/IDE
 # .idea/
+.idea
+/.idea
+
 # .vscode/
+
+# exec
+.bin
+bin
