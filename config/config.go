@@ -36,8 +36,11 @@ type Config struct {
 }
 
 type ServerREST struct {
-	Host string `koanf:"host"`
-	Port uint   `koanf:"port"`
+	Host     string `koanf:"host"`
+	Port     uint   `koanf:"port"`
+	CAPath   string `koanf:"ca"`
+	CertPath string `koanf:"cert"`
+	KeyPath  string `koanf:"key"`
 }
 
 type ServiceBasicConfig struct {
