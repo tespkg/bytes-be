@@ -1,7 +1,7 @@
 package svc
 
 import (
-	"github.com/tespkg/bytes-store/config"
+	"github.com/tespkg/bytes-be/config"
 	"os"
 )
 

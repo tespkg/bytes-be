@@ -1,0 +1,300 @@
+syntax = "proto3";
+
+package tes.bytesm.v1alpha;
+
+option go_package = ".";
+
+import "google/protobuf/duration.proto";
+import "google/protobuf/timestamp.proto";
+
+service BytesMatch {
+  rpc OnlineWorker(OnlineWorkerRequest) returns (OnlineWorkerResponse);
+  rpc OfflineWorker(OfflineWorkerRequest) returns (OfflineWorkerResponse);
+  rpc UpdateWorkerPosition(UpdateWorkerPositionRequest) returns (UpdateWorkerPositionResponse);
+  rpc ComputeRoute(ComputeRouteRequest) returns (ComputeRouteResponse);
+  // OptimizeRoute is a stateless API, it schedules a list of requests into the given worker
+  // to form a shortest route where it can deliver all the given requests with the give worker.
+  // the worker and requests does not have to be managed by the matching service,
+  // it can be any worker that is capable of carrying or any requests that need to be carried.
+  rpc OptimizeRoute(OptimizeRouteRequest) returns (OptimizeRouteResponse);
+  // GetWorker return the worker stats like the
+  // schedules etc.
+  rpc GetWorker(GetWorkerRequest) returns (GetWorkerResponse);
+  // Submit a delivery request to the matching service,
+  // it will block until either a assigment is found
+  // or any error occurred. It is allowed to resubmit a
+  // request multiple times as long as the request is not
+  // accepted to by a worker yet(submit a assigned request
+  // is a noop operation and have no side effect).
+  // Resubmitting a rejected request is allowed as well.
+  //
+  // If there is a crash while a client is blocking on
+  // waiting the assigment returns, e.g., a power failure,
+  // we can use `Query` API to query the request status
+  // and decide whether to resubmit the request accordingly.
+  rpc Submit(SubmitRequest) returns (SubmitResponse);
+  // Accept a request that is in assigned status,
+  // accepting a accepted request multiple times
+  // is allowed and have no side effects.
+  rpc Accept(AcceptRequest) returns (AcceptResponse);
+  // Reject a request that is in assigned status.
+  // rejecting a rejected request multiple times
+  // is allowed and have no side effects.
+  // rejecting a request with assigned worker, indicate
+  // the matching service do not assign the request to
+  // the worker anymore.
+  // It is allowed to reject a canceled request as well.
+  rpc Reject(RejectRequest) returns (RejectResponse);
+  // Pickup a request that is in accepted status
+  // pickup a picked request multiple times is
+  // allowed and have no side effects.
+  rpc Pickup(PickupRequest) returns (PickupResponse);
+  // Complete a request that is in picked status
+  // complete a completed request multiple times is
+  // allowed and have no side effects.
+  rpc Complete(CompleteRequest) returns (CompleteResponse);
+  // Cancel a request, it is allowed only if the
+  // request is not picked/completed.
+  // cancel a rejected request is a noop operation.
+  rpc Cancel(CancelRequest) returns (CancelResponse);
+  // Query a request, return directly if the request
+  // is assigned already, otherwise, it will block
+  // until either a assigment is found or any error occurred.
+  rpc Query(QueryRequest) returns(QueryResponse);
+}
+
+message OnlineWorkerRequest {
+  int64 id = 1;
+  int64 cap = 2;
+}
+
+message OnlineWorkerResponse {}
+
+message OfflineWorkerRequest {
+  int64 id = 1;
+}
+
+message OfflineWorkerResponse {}
+
+message UpdateWorkerPositionRequest {
+  int64 id = 1;
+  // coord in WGS84, i.e., EPSG:4326
+  // and degree representation.
+  double longitude = 2;
+  double latitude = 3;
+}
+
+message UpdateWorkerPositionResponse {}
+
+message ComputeRouteRequest {
+  repeated Position positions = 1;
+}
+
+message ComputeRouteResponse {
+  int64 distance_meters = 1;
+  int64 duration_seconds = 2;
+  // geometry is the geojson
+  // representation of the route
+  string geometry = 3;
+}
+
+message OptimizeRouteRequest {
+  // any worker that have valid id and position,
+  // any other fields are ignored.
+  Worker worker = 1;
+  // any request that have valid id and pickup/dropoff,
+  // any other fields are ignored.
+  repeated Request requests = 2;
+}
+
+message OptimizeRouteResponse {
+  // the worker.schedules represents the scheduled sequences.
+  Worker worker = 1;
+}
+
+message GetWorkerRequest {
+  int64 id = 1;
+}
+
+message GetWorkerResponse {
+  Worker worker = 1;
+}
+
+message SubmitRequest {
+  int64 id = 1;
+  Position pickup = 2;
+  Position dropoff = 3;
+
+  // request release time, in seconds.
+  // one of a major factor to calculate
+  // the deadline.
+  int64 tim = 4;
+  // how much cap the request would occupy
+  // the worker if it is being carried.
+  int64 com = 5;
+  // the maximum wait time, in seconds, to match a
+  // worker. 0 means no timeout, i.e., wait forever.
+  int64 timeout = 6;
+}
+
+message SubmitResponse {
+  Request request = 1;
+  Worker worker = 2;
+}
+
+message AcceptRequest {
+  int64 id = 1;
+}
+
+message AcceptResponse {}
+
+message RejectRequest {
+  repeated int64 ids = 1;
+}
+
+message RejectResponse {}
+
+message PickupRequest {
+  int64 id = 1;
+}
+
+message PickupResponse {}
+
+message CompleteRequest {
+  int64 id = 1;
+}
+
+message CompleteResponse {}
+
+message CancelRequest{
+  repeated int64 ids = 1;
+}
+
+message CancelResponse {}
+
+message QueryRequest {
+  int64 id = 1;
+}
+
+message QueryResponse {
+  Request request = 1;
+  Worker worker = 2;
+}
+
+message Worker {
+  int64 id = 1;
+
+  Position pos = 2;
+  google.protobuf.Timestamp pos_updated_at = 3;
+
+  WorkerStatus status = 4;
+  google.protobuf.Timestamp statues_updated_at = 5;
+
+  // request id that caused the worker get suspended.
+  int64 suspended_by = 6;
+  google.protobuf.Timestamp suspended_at = 7;
+
+  // total cap of the worker
+  int64 cap = 8;
+  // the cap that is occupied currently
+  int64 num = 9;
+  // the cap that is reserved currently,
+  // accepted but not picked up yet.
+  int64 reserved = 10;
+
+  // time on the latest checkpoint, in seconds
+  int64 tim = 11;
+
+  repeated Schedule schedules = 12;
+  // arrive[k] as the time when w arrives at lk from w.Pos plus w.Tim, in seconds
+  repeated int64 arrive = 13;
+  // distance[k] as the distance when w arrives at lk from w.Pos, in meters
+  repeated int64 distance = 14;
+}
+
+message Request {
+  int64 id = 1;
+  Position pickup = 2;
+  Position dropoff = 3;
+
+  // request release time, in seconds.
+  // one of a major factor to calculate
+  // the deadline.
+  int64 tim = 4;
+  // how much cap the request would occupy
+  // the worker if it is being carried.
+  int64 com = 5;
+
+  // travel duration from pickup to dropoff
+  int64 duration = 6;
+  // deadline set by the scheduler, does not
+  // expose to the user.
+  // calculated by `tim + duration + tolerance`.
+  int64 deadline = 8;
+
+  RequestStatus status = 9;
+  google.protobuf.Timestamp statues_updated_at = 10;
+
+  int64 assigned_worker = 11;
+  repeated Rejection rejections = 12;
+}
+
+enum WorkerStatus {
+  WorkerOffline = 0;
+  // WorkerOnline indicate worker is available for
+  // accepting new request.
+  WorkerOnline = 1;
+  // WorkerSuspended indicate request is assigned to
+  // worker and worker is in the process of accept
+  // or reject the request. if worker accepted req,
+  // transit to WorkerOnline directly. if worker
+  // rejected req, remove the req from the worker
+  // schedules and transit to WorkerOnline.
+  WorkerSuspended = 2;
+}
+
+message Schedule {
+  // rid as request id with pickup/dropoff
+  // info embedded, in which it uses the
+  // lowest bit to indicate whether it's a
+  // pickup or dropoff position, i.e.,
+  // when
+  //   `rid & 1` equals to `0`, pickup position
+  //   `rid & 1` equals to `1`, dropoff position
+  // request_id = rid >> 1
+  uint64 rid = 1;
+  // how much cap the request would occupy
+  // the worker if it is being carried.
+  int64 com = 2;
+  int64 deadline = 3;
+  Position pos = 4;
+}
+
+message Position {
+  double longitude = 1;
+  double latitude = 2;
+}
+
+enum RequestStatus {
+  RequestSubmitting = 0;
+  RequestQueued = 1;
+  RequestAssignFailed = 2;
+  RequestAssigned = 20;
+  RequestAccepted = 21;
+  RequestRejected = 22;
+  RequestPickedUp = 23;
+  RequestCompleted = 24;
+  RequestCanceled = 25;
+}
+
+message Rejection {
+  int64 worker_id = 1;
+  google.protobuf.Timestamp rejected_at = 5;
+}
+
+// Defines the supported values for `google.rpc.ErrorInfo.reason`
+enum ErrorReason {
+  // Do not use this default value.
+  UNSPECIFIED = 0;
+  INVALID_REQUEST_STATUS = 1;
+}

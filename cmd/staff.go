@@ -2,13 +2,13 @@ package cmd
 
 import (
 	"github.com/spf13/cobra"
-	"github.com/tespkg/bytes-store/config"
-	"github.com/tespkg/bytes-store/svc"
-	"github.com/tespkg/bytes-store/svc/staff/rest"
+	"github.com/tespkg/bytes-be/config"
+	"github.com/tespkg/bytes-be/svc"
+	"github.com/tespkg/bytes-be/svc/staff/rest"
 	"os"
 	"os/signal"
 	"syscall"
-	"tespkg.in/go-kit/logx"
+	"tespkg.in/kit/log"
 )
 
 var configPath string
@@ -30,9 +30,10 @@ func runServices(servers []svc.Service) {
 	//load default config
 	cfg, err := config.LoadWithDefault(configPath)
 	if err != nil {
-		logx.Default().Fatalf("load config, path[%s], err: %v", configPath, err)
+		log.Fatalf("load config, path[%s], err: %v", configPath, err)
 	}
-	logx.Default().Infof("load config OK")
+
+	log.Infof("load config OK")
 
 	//run all servers
 	for _, server := range servers {
@@ -60,15 +61,15 @@ func runOneService(server svc.Service, cfg config.Config) {
 
 	//load server
 	if err := server.Load(cfg); err != nil {
-		logx.Default().Fatalf("load %s server, err: %v", server.Name(), err)
+		log.Fatalf("load %s server, err: %v", server.Name(), err)
 	}
 
-	logx.Default().Infof("load %s server OK", server.Name())
+	log.Infof("load %s server OK", server.Name())
 
 	go server.Run(readyChan)
 	<-readyChan
 
-	logx.Default().Infof("%s server started", server.Name())
+	log.Infof("%s server started", server.Name())
 }
 
 func embedNotifySignal(fn func(os.Signal)) {

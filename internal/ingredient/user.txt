@@ -1,0 +1,18 @@
+Rules:
+- Do not include common seasonings such as salt, vinegar, etc.
+- Do not include common spices.
+- Do not include water.
+- Do not include ginger or garlic.
+- If you cannot find the ingredients, return an empty array.
+
+Return the ingredients with a valid JSON array format, as shown:
+{
+    "ingredients": [
+        "ingredient1",
+        "ingredient2",
+        "ingredient3",
+        "more..."
+    ]
+}
+
+Now, please provide the ingredients for the following dish:

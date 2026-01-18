@@ -1,7 +1,8 @@
 package config
 
 import (
-	"tespkg.in/go-kit/configx"
+	"github.com/knadh/koanf"
+	"github.com/knadh/koanf/providers/structs"
 )
 
 type Config struct {
@@ -90,12 +91,12 @@ var DefaultConfig = &Config{
 
 func LoadWithDefault(configPath string) (Config, error) {
 	var cfg Config
-	if err := load(configPath, &cfg, DefaultConfig); err != nil {
+
+	k := koanf.New(".")
+
+	if err := k.Load(structs.Provider(DefaultConfig, "koanf"), nil); err != nil {
 		return cfg, err
 	}
-	return cfg, nil
-}
 
-func load(configPath string, out, defVal any) error {
-	return configx.Load(configPath, out, configx.WithDefaultConfig(defVal))
+	return cfg, nil
 }
