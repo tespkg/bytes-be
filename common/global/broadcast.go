@@ -10,11 +10,8 @@ import (
 )
 
 const (
-	BroadcastRoleUser        = "user"
-	BroadcastRoleMerchant    = "merchant"
-	BroadcastRoleBranch      = "branch"
-	BroadcastRoleDriver      = "driver"
-	BroadcastRoleFreshBranch = "fresh_branch"
+	BroadcastRoleUser     = "user"
+	BroadcastRoleMerchant = "merchant"
 )
 
 /*

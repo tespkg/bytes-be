@@ -3,6 +3,7 @@ package token
 import (
 	"context"
 	"github.com/golang-jwt/jwt/v4"
+	"github.com/google/uuid"
 	"github.com/pkg/errors"
 	"github.com/tespkg/bytes-be/common/global"
 	"gorm.io/gorm"
@@ -31,7 +32,7 @@ func GenClaims(dto *GenTokenDto) UserClaims {
 			IssuedAt:  jwt.NewNumericDate(time.Now()),
 			ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Hour * time.Duration(defaultTokenExpireDuration))),
 			Issuer:    Issuer,
-			ID:        dto.UserId,
+			ID:        uuid.NewString(),
 			Subject:   dto.UserId,
 		},
 		Platform:      dto.Platform,
@@ -77,21 +78,21 @@ func GenToken(dto *GenTokenDto) (string, error) {
 	return signedToken, nil
 }
 
-var TokenFormatError = errors.New("token format error")
-var TokenInvalidError = errors.New("invalid token")
-var TokenExpiredError = errors.New("expired token")
-var TokenUnknownError = errors.New("unknown token error")
-var TokenClaimsError = errors.New("token claims error")
-var TokenSignatureInvalidError = errors.New("token invalid signature error")
+var FormatError = errors.New("token format error")
+var InvalidError = errors.New("invalid token")
+var ExpiredError = errors.New("expired token")
+var UnknownError = errors.New("unknown token error")
+var ClaimsError = errors.New("token claims error")
+var SignatureInvalidError = errors.New("token invalid signature error")
 
 func VerifyToken(ctx context.Context, session *gorm.DB, tokenString string) (context.Context, error) {
 	token, err := jwt.ParseWithClaims(tokenString, &UserClaims{}, func(token *jwt.Token) (interface{}, error) {
 		if claims, ok := token.Claims.(*UserClaims); !ok {
-			return nil, TokenClaimsError
+			return nil, ClaimsError
 		} else {
 			secret, err := GetUserSecret(&GenTokenDto{
 				Session:       session,
-				UserId:        claims.ID,
+				UserId:        claims.Subject,
 				Platform:      "",
 				Imei:          "",
 				ClientVersion: "",
@@ -103,37 +104,23 @@ func VerifyToken(ctx context.Context, session *gorm.DB, tokenString string) (con
 			}
 			return []byte(secret), nil
 		}
-
-		//if third.GlobalClients.EnableSingleLogin {
-		//	if claims, ok := token.Claims.(*WalletClaims); !ok {
-		//		return nil, TokenClaimsError
-		//	} else {
-		//		secret, err := GetUserSecret(session, claims.ID)
-		//		if err != nil {
-		//			return nil, err
-		//		}
-		//		return []byte(secret), nil
-		//	}
-		//}
-		//
-		//return []byte(jwtSecret), nil
 	})
 	if err != nil {
 		if errors.Is(err, jwt.ErrTokenMalformed) {
-			return ctx, TokenFormatError
+			return ctx, FormatError
 		} else if errors.Is(err, jwt.ErrTokenExpired) {
-			return ctx, TokenExpiredError
+			return ctx, ExpiredError
 		} else if errors.Is(err, jwt.ErrTokenNotValidYet) {
-			return ctx, TokenExpiredError
+			return ctx, ExpiredError
 		} else if errors.Is(err, jwt.ErrTokenSignatureInvalid) {
-			return ctx, TokenSignatureInvalidError
+			return ctx, SignatureInvalidError
 		} else {
-			return ctx, TokenUnknownError
+			return ctx, UnknownError
 		}
 	}
 
 	if !token.Valid {
-		return ctx, TokenInvalidError
+		return ctx, InvalidError
 	}
 
 	if claims, ok := token.Claims.(*UserClaims); ok {
@@ -141,6 +128,6 @@ func VerifyToken(ctx context.Context, session *gorm.DB, tokenString string) (con
 		ctx = context.WithValue(ctx, ClaimsCtx, claims)
 		return ctx, nil
 	} else {
-		return ctx, TokenClaimsError
+		return ctx, ClaimsError
 	}
 }
