@@ -30,10 +30,11 @@ func (s *Server) ginRouter() {
 }
 
 func (s *Server) routerCommon(group *gin.RouterGroup, mws ...gin.HandlerFunc) {
-
+	group.POST("/code/verify", s.SendVerifyCode)
 }
 
 func (s *Server) routerCustomer(group *gin.RouterGroup, mws ...gin.HandlerFunc) {
+	group.POST("/register", s.Register)
 
 	group.Use(middle.WithToken(s.db))
 	group.Use(middle.WithUserInfo(s.db))

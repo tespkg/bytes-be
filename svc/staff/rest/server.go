@@ -294,7 +294,7 @@ func (s *Server) loadSmartPay() error {
 
 func (s *Server) loadClickPay() error {
 	if s.config.ClickPay == "" {
-		return errors.New("no config for clickpay")
+		return nil
 	}
 
 	cp, err := clickpay.New(clickpay.WithConfigFile(s.config.ClickPay))

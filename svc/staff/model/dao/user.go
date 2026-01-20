@@ -42,3 +42,33 @@ func GetUserById(db *gorm.DB, id int64) (*User, error) {
 
 	return user, nil
 }
+
+func GetUserByPhoneAndRole(db *gorm.DB, phone, role string) (*User, error) {
+	var user *User
+	if err := db.Model(&User{}).
+		Joins("LEFT JOIN user_roles ur ON users.id = ur.user_id").
+		Joins("LEFT JOIN roles r ON ur.role_id = r.id").
+		Where("users.phone = ? AND r.name = ?", phone, role).
+		Distinct("users.*").
+		Preload("Roles").Preload("UserRoles").Preload("Customers").
+		First(&user).Error; err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
+		return nil, err
+	}
+
+	return user, nil
+}
+
+func GetUserByEmailAndRole(db *gorm.DB, email, role string) (*User, error) {
+	var user *User
+	if err := db.Model(&User{}).
+		Joins("LEFT JOIN user_roles ur ON users.id = ur.user_id").
+		Joins("LEFT JOIN roles r ON ur.role_id = r.id").
+		Where("users.email = ? AND r.name = ?", email, role).
+		Distinct("users.*").
+		Preload("Roles").Preload("UserRoles").Preload("Customers").
+		First(&user).Error; err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
+		return nil, err
+	}
+
+	return user, nil
+}

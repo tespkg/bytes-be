@@ -1,0 +1,91 @@
+definitions:
+  dto.CustomerRegisterReq:
+    properties:
+      code:
+        type: string
+      email:
+        type: string
+      password:
+        type: string
+      phone:
+        type: string
+    required:
+    - code
+    - password
+    - phone
+    type: object
+  dto.CustomerRegisterResp:
+    properties:
+      loginToken:
+        type: string
+    type: object
+  result.NullJson:
+    type: object
+  result.ResponseSuccessBean-NullJson:
+    properties:
+      code:
+        type: integer
+      data:
+        $ref: '#/definitions/result.NullJson'
+      msg:
+        type: string
+    type: object
+  result.ResponseSuccessBean-dto_CustomerRegisterResp:
+    properties:
+      code:
+        type: integer
+      data:
+        $ref: '#/definitions/dto.CustomerRegisterResp'
+      msg:
+        type: string
+    type: object
+info:
+  contact: {}
+paths:
+  /api/v1/common/code/verify:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: email
+        in: body
+        name: email
+        schema:
+          type: string
+      - description: phone
+        in: body
+        name: phone
+        schema:
+          type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/result.ResponseSuccessBean-NullJson'
+      summary: send verify code
+      tags:
+      - Common
+  /api/v1/customer/register:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: customer register request
+        in: body
+        name: req
+        required: true
+        schema:
+          $ref: '#/definitions/dto.CustomerRegisterReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/result.ResponseSuccessBean-dto_CustomerRegisterResp'
+      summary: customer register
+      tags:
+      - Customer
+swagger: "2.0"

@@ -2,7 +2,8 @@ package config
 
 import (
 	"github.com/knadh/koanf"
-	"github.com/knadh/koanf/providers/structs"
+	"github.com/knadh/koanf/parsers/yaml"
+	"github.com/knadh/koanf/providers/file"
 )
 
 type Config struct {
@@ -85,16 +86,20 @@ type BytesMatch struct {
 	ExpireDuration int    `koanf:"expire_duration"`
 }
 
-var DefaultConfig = &Config{
+var DefaultConfig = Config{
 	Version: "0.0.0",
 }
 
 func LoadWithDefault(configPath string) (Config, error) {
-	var cfg Config
+	cfg := DefaultConfig
 
 	k := koanf.New(".")
 
-	if err := k.Load(structs.Provider(DefaultConfig, "koanf"), nil); err != nil {
+	if err := k.Load(file.Provider(configPath), yaml.Parser()); err != nil {
+		return cfg, err
+	}
+
+	if err := k.Unmarshal("", &cfg); err != nil {
 		return cfg, err
 	}
 

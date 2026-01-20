@@ -1,0 +1,36 @@
+smart_pay_config:
+  is_production: false
+  merchant_id: 216
+  access_code: AVZS00JK16BA51SZAB
+  working_key: 1569B2C034A0F50E60A7530FCE299E00
+  currency: OMR
+  redirect_url: http://192.168.2.21:9320/api/spcb
+  cancel_url: http://192.168.2.21:9320/api/spcc
+  transaction_endpoint_test: https://mti.bankmuscat.com:6443/transaction.do
+  transaction_endpoint_prod: https://smartpaytrns.bankmuscat.com/transaction.do
+  api_endpoint_test: https://mti.bankmuscat.com:9443/apis/servlet/DoWebTrans
+  api_endpoint_prod: https://smartpayapi.bankmuscat.com/apis/servlet/DoWebTrans
+  referer: https://bytes.us
+  api_timeout: 200
+  api_retry_count: 3
+
+
+clickpay_config:
+  is_production: false
+  api_referer: https://bytes.us
+  api_timeout: 30
+  api_retry_count: 3
+  #api_proxy:
+  channels:
+    - name: "phone"
+      profile_id: 42694
+      server_key: SLJNLL9ZRR-J62ZW6RJBR-JKGKMZJ9GD
+      endpoint_prefix: https://secure.clickpay.com.sa/payment
+      callback_url: https://bytes.dev.meeraspace.com/api/clickpay/callback
+      return_url: https://myhttps.com/api/clickpay/spcb
+    - name: "web"
+      profile_id: 42694
+      server_key: SLJNLL9ZRR-J62ZW6RJBR-JKGKMZJ9GD
+      endpoint_prefix: https://secure.clickpay.com.sa/payment
+      callback_url: https://bytes.dev.meeraspace.com/api/clickpay/callback
+      return_url: https://192.168.2.107:9320/api/clickpay/spcb

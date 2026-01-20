@@ -17,7 +17,7 @@ service_basic_config:
   bytes_env: ""
 
 postgres:
-  dsn: postgres://postgres:postgres@localhost:56565/food?sslmode=disable
+  dsn: postgres://postgres:postgres@localhost:5432/bytes-be?sslmode=disable
   max_idle_conns: 100
   max_open_conns: 100
   log_level: info
@@ -35,7 +35,7 @@ redis:
 
 nominatim_addr: nominatim.openstreetmap.org
 
-smart_pay: ""
+smart_pay: "./smartpay.yml"
 
 click_pay: ""
 
